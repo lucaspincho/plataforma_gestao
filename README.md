@@ -1,11 +1,11 @@
-# 🏛️ Plataforma de Gestão Jurídica
+# 🏛️ Plataforma de Gestão RH
 
-Uma plataforma web moderna e completa para gestão de escritórios de advocacia, com funcionalidades similares ao ADVBox, mas com interface limpa, moderna e responsiva.
+Uma plataforma web moderna e completa para gestão de RH.
 
 ## 🚀 Funcionalidades
 
 - **Gestão de Processos Jurídicos** - Cadastro completo com timeline de movimentações
-- **Controle de Prazos** - Calendário jurídico integrado com alertas automáticos
+- **Controle de Prazos** - Calendário integrado com alertas automáticos
 - **Gestão de Tarefas** - Delegação e controle de status por equipe
 - **Agenda de Audiências** - Organização completa com notificações
 - **Cadastro de Clientes** - Gestão de relacionamento e histórico
@@ -63,7 +63,7 @@ npx prisma migrate dev
 npm run dev
 ```
 
-## 🏗️ Estrutura do Projeto
+##  Estrutura do Projeto
 
 ```
 plataforma_gestao/
@@ -73,7 +73,7 @@ plataforma_gestao/
 └── README.md         # Este arquivo
 ```
 
-## 📱 Interface
+##  Interface
 
 A interface foi projetada para ser:
 - **Moderna e limpa** - Design minimalista e profissional
