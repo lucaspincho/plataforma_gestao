@@ -1,0 +1,201 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  ADVOGADO
+  ASSISTENTE
+}
+
+enum ProcessStatus {
+  ATIVO
+  SUSPENSO
+  ARQUIVADO
+  FINALIZADO
+}
+
+enum TaskStatus {
+  PENDENTE
+  EM_ANDAMENTO
+  CONCLUIDA
+  CANCELADA
+}
+
+enum AudienceType {
+  INSTRUCAO
+  CONCILIACAO
+  JULGAMENTO
+  INICIAL
+  OUTRA
+}
+
+enum ProcessType {
+  CIVIL
+  TRABALHISTA
+  CRIMINAL
+  TRIBUTARIO
+  FAMILIA
+  EMPRESARIAL
+  PREVIDENCIARIO
+  OUTRO
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      UserRole @default(ASSISTENTE)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relacionamentos
+  assignedTasks Task[]     @relation("AssignedTasks")
+  createdTasks  Task[]     @relation("CreatedTasks")
+  processes     Process[]  @relation("ResponsibleLawyer")
+  audiences     Audience[] @relation("ResponsibleLawyer")
+
+  @@map("users")
+}
+
+model Client {
+  id        String  @id @default(cuid())
+  name      String
+  email     String?
+  phone     String?
+  document  String  @unique // CPF ou CNPJ
+  type      String  @default("PESSOA_FISICA") // PESSOA_FISICA ou PESSOA_JURIDICA
+  address   String?
+  city      String?
+  state     String?
+  zipCode   String?
+  notes     String?
+  active    Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relacionamentos
+  processes Process[]
+
+  @@map("clients")
+}
+
+model Process {
+  id              String        @id @default(cuid())
+  number          String        @unique // Número do processo judicial
+  title           String
+  description     String?
+  type            ProcessType
+  status          ProcessStatus @default(ATIVO)
+  court           String? // Comarca/Tribunal
+  judge           String?
+  opposingParty   String? // Parte contrária
+  value           Decimal? // Valor da causa
+  startDate       DateTime?
+  endDate         DateTime?
+  responsibleId   String
+  clientId        String
+  active          Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relacionamentos
+  responsible   User           @relation("ResponsibleLawyer", fields: [responsibleId], references: [id])
+  client        Client         @relation(fields: [clientId], references: [id])
+  tasks         Task[]
+  audiences     Audience[]
+  movements     Movement[]
+  deadlines     Deadline[]
+
+  @@map("processes")
+}
+
+model Task {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  status      TaskStatus @default(PENDENTE)
+  priority    String     @default("MEDIA") // ALTA, MEDIA, BAIXA
+  dueDate     DateTime?
+  assignedId  String
+  createdById String
+  processId   String?
+  clientId    String?
+  completed   Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Relacionamentos
+  assigned  User     @relation("AssignedTasks", fields: [assignedId], references: [id])
+  createdBy User     @relation("CreatedTasks", fields: [createdById], references: [id])
+  process   Process? @relation(fields: [processId], references: [id])
+
+  @@map("tasks")
+}
+
+model Audience {
+  id            String        @id @default(cuid())
+  title         String
+  description   String?
+  date          DateTime
+  time          String?
+  type          AudienceType
+  location      String?
+  status        String        @default("AGENDADA") // AGENDADA, REALIZADA, CANCELADA, ADIADA
+  processId     String
+  responsibleId String
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // Relacionamentos
+  process     Process @relation(fields: [processId], references: [id])
+  responsible User    @relation("ResponsibleLawyer", fields: [responsibleId], references: [id])
+
+  @@map("audiences")
+}
+
+model Deadline {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  date        DateTime
+  type        String   @default("PRAZO") // PRAZO, VENCIMENTO, LEMBRETE
+  status      String   @default("PENDENTE") // PENDENTE, CUMPRIDO, VENCIDO
+  processId   String
+  priority    String   @default("MEDIA") // ALTA, MEDIA, BAIXA
+  notified    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relacionamentos
+  process Process @relation(fields: [processId], references: [id])
+
+  @@map("deadlines")
+}
+
+model Movement {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  date        DateTime
+  type        String   @default("MOVIMENTACAO") // MOVIMENTACAO, DESPACHO, DECISAO, PETICAO
+  processId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relacionamentos
+  process Process @relation(fields: [processId], references: [id])
+
+  @@map("movements")
+} 
